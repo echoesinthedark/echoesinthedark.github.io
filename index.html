@@ -550,9 +550,7 @@
           <h2 class="words">The trailer for our next song.</h2>
         </div>
         <div class="trailer-frame reveal soft" style="--d:.15s">
-          <video id="trailer-video" controls playsinline preload="none" poster="trailer-poster.jpg">
-            <source src="trailer.mp4" type="video/mp4">
-          </video>
+          <video id="trailer-video" controls playsinline preload="none" poster="trailer-poster.jpg" data-src="trailer/index.m3u8"></video>
         </div>
       </div>
     </section>
@@ -1273,6 +1271,19 @@
     setStatus('Your email app should open with the message ready to send. If it does not, write to <a href="mailto:'+to+'">'+to+'</a>.');
   });
 })();
+</script>
+<script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.20/dist/hls.min.js" defer></script>
+<script>
+// Trailer streams the untouched original in small chunks; nothing downloads until play
+window.addEventListener('DOMContentLoaded',function(){
+  var v=document.getElementById('trailer-video'); if(!v) return;
+  var src=v.getAttribute('data-src');
+  if(window.Hls && Hls.isSupported()){
+    var hls=new Hls({autoStartLoad:false,startLevel:0,maxBufferLength:30});
+    hls.loadSource(src); hls.attachMedia(v);
+    v.addEventListener('play',function(){ hls.startLoad(); },{once:true});
+  } else if(v.canPlayType('application/vnd.apple.mpegurl')){ v.src=src; }
+});
 </script>
 </body>
 </html>
