@@ -1274,30 +1274,40 @@
 </script>
 <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.20/dist/hls.min.js" defer></script>
 <script>
-// Trailer: the poster swaps for the player on the first click, so nothing loads until asked.
+// Trailer: nothing loads until play. The poster swaps for the site's own player, which streams
+// the trailer in small chunks from this site (1080p, or 540p on slow connections).
 window.addEventListener('DOMContentLoaded',function(){
-  var b=document.getElementById('trailer-play');
-  if(b){ b.addEventListener('click',function(){
-    var f=document.createElement('iframe');
-    f.src='https://drive.google.com/file/d/10rJlKpkIJEyC_wISI6FlmzRn6npThSgE/preview';
-    f.title='Echoes in the Dark trailer';
-    f.allow='autoplay; fullscreen; encrypted-media; picture-in-picture';
-    f.setAttribute('allowfullscreen','');
-    b.replaceWith(f);
-    // Phones: the same tap that starts the trailer takes it fullscreen, landscape where allowed.
-    var mobile=window.matchMedia && (matchMedia('(pointer: coarse)').matches || matchMedia('(max-width: 820px)').matches);
-    if(mobile){ try{
-      if(f.requestFullscreen){ f.requestFullscreen().catch(function(){}); } else if(f.webkitRequestFullscreen){ f.webkitRequestFullscreen(); }
+  var b=document.getElementById('trailer-play'); if(!b) return;
+  var src='trailer/index.m3u8';
+  // Phones: the same tap that starts the trailer takes it fullscreen, landscape where allowed.
+  var mobile=window.matchMedia && (matchMedia('(pointer: coarse)').matches || matchMedia('(max-width: 820px)').matches);
+  function goFull(v){
+    try{
+      if(v.requestFullscreen){ v.requestFullscreen().catch(function(){}); }
+      else if(v.webkitRequestFullscreen){ v.webkitRequestFullscreen(); }
+      else if(v.webkitEnterFullscreen){ v.webkitEnterFullscreen(); } // iPhone
       if(screen.orientation && screen.orientation.lock){ screen.orientation.lock('landscape').catch(function(){}); }
-    }catch(e){} }
-  }); }
-  var v=document.getElementById('trailer-video'); if(!v) return;
-  var src=v.getAttribute('data-src');
-  if(window.Hls && Hls.isSupported()){
-    var hls=new Hls({autoStartLoad:false,startLevel:0,maxBufferLength:30});
-    hls.loadSource(src); hls.attachMedia(v);
-    v.addEventListener('play',function(){ hls.startLoad(); },{once:true});
-  } else if(v.canPlayType('application/vnd.apple.mpegurl')){ v.src=src; }
+    }catch(e){}
+  }
+  b.addEventListener('click',function(){
+    var v=document.createElement('video');
+    v.controls=true; v.autoplay=true; v.preload='auto';
+    v.playsInline=!mobile; // on iPhone, no playsinline = the native fullscreen player opens on play
+    v.setAttribute('poster','trailer-poster.jpg');
+    v.setAttribute('aria-label','Echoes in the Dark trailer');
+    if(window.Hls && Hls.isSupported()){
+      var hls=new Hls({startLevel:-1,maxBufferLength:30});
+      hls.loadSource(src); hls.attachMedia(v);
+      hls.on(Hls.Events.MANIFEST_PARSED,function(){ v.play().catch(function(){}); });
+    } else {
+      v.src=src; // Safari and iOS play HLS natively
+    }
+    b.replaceWith(v);
+    if(mobile){
+      goFull(v); // inside the tap, so the browser allows it
+      v.addEventListener('loadedmetadata',function(){ if(!document.fullscreenElement) goFull(v); },{once:true});
+    }
+  });
 });
 </script>
 </body>
