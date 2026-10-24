@@ -1284,6 +1284,12 @@ window.addEventListener('DOMContentLoaded',function(){
     f.allow='autoplay; fullscreen; encrypted-media; picture-in-picture';
     f.setAttribute('allowfullscreen','');
     b.replaceWith(f);
+    // Phones: the same tap that starts the trailer takes it fullscreen, landscape where allowed.
+    var mobile=window.matchMedia && (matchMedia('(pointer: coarse)').matches || matchMedia('(max-width: 820px)').matches);
+    if(mobile){ try{
+      if(f.requestFullscreen){ f.requestFullscreen().catch(function(){}); } else if(f.webkitRequestFullscreen){ f.webkitRequestFullscreen(); }
+      if(screen.orientation && screen.orientation.lock){ screen.orientation.lock('landscape').catch(function(){}); }
+    }catch(e){} }
   }); }
   var v=document.getElementById('trailer-video'); if(!v) return;
   var src=v.getAttribute('data-src');
