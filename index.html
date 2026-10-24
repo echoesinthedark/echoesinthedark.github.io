@@ -238,7 +238,14 @@
   .trailer-head{text-align:center;max-width:720px;margin:0 auto 48px}
   .trailer-frame{position:relative;border:1px solid var(--line-strong);background:var(--surface);
     box-shadow:0 0 0 1px rgba(212,176,98,.08),0 30px 80px -30px var(--gold-glow);aspect-ratio:16/9;overflow:hidden}
-  .trailer-frame video{display:block;width:100%;height:100%;object-fit:cover;background:#000}
+  .trailer-frame video,.trailer-frame iframe{display:block;width:100%;height:100%;object-fit:cover;background:#000;border:0}
+  .trailer-frame .screen{position:relative;display:block;width:100%;height:100%;padding:0;margin:0;border:0;background:#000;cursor:pointer}
+  .trailer-frame .screen img{display:block;width:100%;height:100%;object-fit:cover;transition:transform 1.4s var(--ease-expo)}
+  .trailer-frame .screen:hover img,.trailer-frame .screen:focus-visible img{transform:scale(1.03)}
+  .trailer-frame .play{position:absolute;inset:0;display:grid;place-items:center;pointer-events:none}
+  .trailer-frame .play span{width:92px;height:92px;border-radius:50%;border:1px solid var(--gold);background:rgba(5,6,10,.72);display:grid;place-items:center;transition:transform .6s var(--ease-expo),background .6s}
+  .trailer-frame .play svg{width:30px;height:30px;fill:var(--gold);margin-left:5px}
+  .trailer-frame .screen:hover .play span,.trailer-frame .screen:focus-visible .play span{transform:scale(1.08);background:rgba(5,6,10,.92)}
   .grid-2{display:grid;grid-template-columns:minmax(0,.85fr) minmax(0,1.6fr);gap:64px;align-items:start}
   .eyebrow{font-family:var(--font-display);font-size:.68rem;letter-spacing:.36em;text-transform:uppercase;color:var(--gold);display:flex;align-items:center;gap:14px;margin:0}
   .eyebrow::before{content:'';width:30px;height:1px;background:var(--gold);transform:scaleX(0);transform-origin:left;transition:transform 1s var(--ease-expo) .25s}
@@ -543,11 +550,14 @@
     <section class="section" id="trailer">
       <div class="wrap">
         <div class="reveal trailer-head">
-          <p class="eyebrow">Coming Next</p>
-          <h2 class="words">The trailer for our next song.</h2>
+          <p class="eyebrow">The Trailer</p>
+          <h2 class="words">Listen closely. The dark is calling.</h2>
         </div>
         <div class="trailer-frame reveal soft" style="--d:.15s">
-          <video id="trailer-video" controls playsinline preload="none" poster="trailer-poster.jpg" data-src="trailer/index.m3u8"></video>
+          <button class="screen" type="button" id="trailer-play" aria-label="Play the Echoes in the Dark trailer">
+            <img src="trailer-poster.jpg" alt="The Echoes in the Dark emblem, from the trailer" width="1280" height="720" loading="lazy">
+            <span class="play" aria-hidden="true"><span><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></span></span>
+          </button>
         </div>
       </div>
     </section>
@@ -1264,8 +1274,17 @@
 </script>
 <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.20/dist/hls.min.js" defer></script>
 <script>
-// Trailer streams the untouched original in small chunks; nothing downloads until play
+// Trailer: the poster swaps for the player on the first click, so nothing loads until asked.
 window.addEventListener('DOMContentLoaded',function(){
+  var b=document.getElementById('trailer-play');
+  if(b){ b.addEventListener('click',function(){
+    var f=document.createElement('iframe');
+    f.src='https://drive.google.com/file/d/10rJlKpkIJEyC_wISI6FlmzRn6npThSgE/preview';
+    f.title='Echoes in the Dark trailer';
+    f.allow='autoplay; fullscreen; encrypted-media; picture-in-picture';
+    f.setAttribute('allowfullscreen','');
+    b.replaceWith(f);
+  }); }
   var v=document.getElementById('trailer-video'); if(!v) return;
   var src=v.getAttribute('data-src');
   if(window.Hls && Hls.isSupported()){
